@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>SPECTRA: Purple Team Command Center</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#070b16;--pn:rgba(12,19,36,.74);--ln:rgba(143,180,255,.16);--tx:#dbe6ff;--mu:#7f90b3;--am:#ffc247;--at:#ff5a3c;--ok:#3ddc97;--ice:#8fb4ff;--hd:'Barlow Condensed','Arial Narrow',sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 600px at 50% 45%,#10213f,var(--bg));color:var(--tx);font:12.5px/1.5 'IBM Plex Mono',ui-monospace,Menlo,monospace;overflow-x:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#stage{position:fixed;inset:0;z-index:0}#stage canvas{display:block;cursor:grab}
+.hud{position:relative;z-index:2;display:grid;grid-template-columns:320px 1fr 320px;grid-template-rows:auto 1fr auto;gap:12px;min-height:100vh;padding:12px 16px;pointer-events:none}
+.hud>*{pointer-events:auto}
+button{font:inherit;color:var(--tx);background:rgba(255,255,255,.05);border:1px solid var(--ln);border-radius:6px;padding:7px 12px;cursor:pointer}button:hover:not(:disabled){border-color:var(--am)}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+header{grid-column:1/4;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;pointer-events:none}header>*{pointer-events:auto}
+.logo{font:700 30px/1 var(--hd);letter-spacing:.16em}.logo small{display:block;font:400 11px var(--mono,'IBM Plex Mono',monospace);letter-spacing:0;color:var(--mu);margin-top:3px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}.pills .on{background:var(--am);color:#1a1200;border-color:var(--am);font-weight:500}
+.seg{display:flex}.seg button:first-child{border-radius:6px 0 0 6px}.seg button:last-child{border-radius:0 6px 6px 0;border-left:0}.seg .on{background:rgba(143,180,255,.22);border-color:var(--ice)}
+#go{background:var(--at);border-color:var(--at);color:#fff;font-weight:500;padding:9px 20px;box-shadow:0 0 24px rgba(255,90,60,.45)}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.pn h3{margin:0 0 10px;font:600 17px var(--hd);letter-spacing:.06em;display:flex;justify-content:space-between;align-items:baseline}.pn h3 span{font:400 11px 'IBM Plex Mono',monospace;color:var(--mu);letter-spacing:0}
+.left,.right{align-self:start;max-height:calc(100vh - 210px);overflow:auto}
+.slot{position:relative;padding:8px 10px 8px 26px;margin-bottom:6px;border-left:2px solid var(--ln);color:var(--mu);transition:.3s}
+.slot:before{content:"";position:absolute;left:-6px;top:12px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--mu)}
+.slot b{display:block;color:var(--tx);font-weight:500}.slot i{font-style:normal;font-size:11px}
+.slot.act{border-color:var(--at);color:var(--at)}.slot.act:before{border-color:var(--at);background:var(--at);box-shadow:0 0 12px var(--at)}
+.slot.det{border-color:var(--ok);color:var(--ok)}.slot.det:before{border-color:var(--ok);background:var(--ok)}
+.slot.miss{border-color:var(--at);background:rgba(255,90,60,.12);color:var(--at)}.slot.miss:before{border-color:var(--at);background:var(--at)}
+.feed div{padding:6px 8px;margin-bottom:5px;border-radius:6px;background:rgba(255,255,255,.04);border-left:3px solid var(--ok);animation:in .3s}.feed .no{border-color:var(--at);background:rgba(255,90,60,.12)}
+@keyframes in{from{opacity:0;transform:translateY(-6px)}}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.mid{align-self:start;justify-self:center;text-align:center;pointer-events:none}
+#chip{display:inline-block;padding:8px 22px;border-radius:99px;font:600 20px var(--hd);letter-spacing:.14em;border:1px solid var(--ok);color:var(--ok);background:rgba(61,220,151,.1)}#chip.hot{border-color:var(--at);color:var(--at);background:rgba(255,90,60,.14);animation:pl 1s infinite}#chip.cont{border-color:var(--ice);color:var(--ice);background:rgba(143,180,255,.12)}
+@keyframes pl{50%{box-shadow:0 0 22px var(--at)}}
+#pop{display:none;margin-top:10px;padding:10px 14px;text-align:left;background:var(--pn);border:1px solid var(--ice);border-radius:8px;pointer-events:auto}
+.bot{grid-column:1/4;display:grid;grid-template-columns:320px 1fr 320px;gap:12px;align-items:end}
+.sc b{font:700 92px/0.9 var(--hd);display:block}.sc{display:flex;gap:14px;align-items:center}.bar{height:8px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden;margin:4px 0}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--at),var(--am),var(--ok));transition:width .6s}
+#hm{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}.tile{padding:6px 3px;border-radius:5px;text-align:center;font-size:10px;line-height:1.25;background:rgba(255,255,255,.04);border:1px solid var(--ln);transition:.3s;min-height:44px}.tile b{display:block;color:var(--mu);font-weight:400}
+.tile.a{border-color:var(--am);background:rgba(255,194,71,.2)}.tile.d{border-color:var(--ok);background:rgba(61,220,151,.16)}.tile.m{border-color:var(--at);background:rgba(255,90,60,.3);animation:pl 1.2s infinite}.tile.f{border-color:var(--ice);background:rgba(143,180,255,.2)}
+#fix{margin-left:8px}.hide{display:none!important}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.kpi b{display:block;font:600 22px var(--hd)}.kpi span{color:var(--mu);font-size:10.5px}
+#imp{font-size:13px}#imp em{color:var(--at);font-style:normal}
+#term{margin-bottom:10px;max-height:130px;overflow:auto;font-size:11px;color:var(--mu)}#term .w{color:var(--at)}#term .s{color:var(--ok)}#term pre{margin:4px 0 0;color:var(--ice);white-space:pre-wrap}
+body.exec .an{display:none!important}body:not(.exec) .ex{display:none!important}
+#md{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;place-items:center;padding:16px;z-index:20}#md.on{display:grid}#md .pn{background:#0c1426;max-width:540px;width:100%;max-height:90vh;overflow:auto}#md table{width:100%;border-collapse:collapse;margin:10px 0}#md td{padding:6px;border-bottom:1px solid var(--ln)}
+@media(max-width:1000px){#stage{position:relative;height:55vh}.hud{display:block;pointer-events:auto;margin-top:-6vh;padding:10px}.pn,.bot>*{margin-bottom:10px}.bot{display:block}.mid{position:absolute;top:calc(env(safe-area-inset-top,0px) + 150px);left:0;right:0}.left,.right{max-height:none}#hm{grid-template-columns:repeat(5,1fr)}}
+#vg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;box-shadow:inset 0 0 170px 45px rgba(255,40,40,.55)}#vg.hot{animation:vp 1s infinite}#vg.safe{box-shadow:inset 0 0 170px 45px rgba(61,220,151,.4);animation:vf 1.8s forwards}
+@keyframes vp{0%,100%{opacity:1}50%{opacity:.3}}@keyframes vf{0%{opacity:1}100%{opacity:0}}
+#bn{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;opacity:0;text-align:center;font:700 clamp(28px,6vw,58px)/1 var(--hd);letter-spacing:.16em;padding:20px 38px;border-radius:12px;background:rgba(8,10,22,.86);border:2px solid var(--at);color:var(--at);text-shadow:0 0 24px currentColor;white-space:nowrap}#bn small{display:block;font:500 clamp(11px,1.6vw,16px) 'IBM Plex Mono',monospace;letter-spacing:.06em;margin-top:10px;color:var(--tx);text-shadow:none}#bn.safe{border-color:var(--ok);color:var(--ok)}#bn.show{animation:bs 2.8s forwards}
+@keyframes bs{0%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}10%{opacity:1;transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
+#cap{position:fixed;left:50%;bottom:236px;transform:translateX(-50%);z-index:6;max-width:min(680px,92vw);padding:12px 20px;border-radius:10px;background:rgba(8,10,22,.92);border:1px solid var(--am);color:var(--tx);font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .3s}#cap.show{opacity:1}#dm{border-color:var(--am);color:var(--am)}
+@media(max-width:1000px){#cap{bottom:14px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="stage"></div><div id="vg"></div><div id="bn"></div><div id="cap"></div>
+<div class="hud">
+<header><div class="logo">SPECTRA<small>Purple Team command center (simulated)</small></div>
+<div class="pills" id="pl"><button data-i="bank" class="on">Banking</button><button data-i="health">Healthcare</button><button data-i="telecom">Telecom</button><button data-i="cloud">Cloud</button><button data-i="energy">Energy</button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="seg"><button id="mEx" class="on">Executive</button><button id="mAn">Analyst</button></div><button id="dm">Play demo</button><button id="snd">Sound: on</button><button id="rep">Report</button><button id="go">Launch attack</button></div></header>
+<section class="pn left"><h3>Red team attack chain <span id="rs">idle</span></h3><div id="rl"></div></section>
+<div class="mid"><div id="chip">SECURE</div><div id="pop"></div></div>
+<section class="pn right"><h3>Blue team alerts <span id="bs">monitoring</span></h3><div class="feed" id="bl"><div>All sensors healthy. No active threats.</div></div>
+<div class="acts"><button data-a="Block IP">Block IP</button><button data-a="Isolate host">Isolate host</button><button data-a="Revoke session">Revoke session</button><button data-a="Deploy rule">Deploy rule</button></div></section>
+<div class="bot">
+<section class="pn sc"><div><span style="color:var(--mu)">Purple score</span><b id="sc">62</b></div><div style="flex:1"><div>Blue caught <b id="dp">0%</b> of the attack</div><div class="bar"><i id="db"></i></div><div style="color:var(--mu);font-size:11px">Score = 94 minus 16 per blind spot</div></div></section>
+<section class="pn"><div id="term" class="an"></div><h3>MITRE ATT&amp;CK coverage <span><button id="fix" class="hide">Auto-generate detection rules</button></span></h3><div id="hm"></div></section>
+<section class="pn"><h3>Business impact</h3><div id="imp">No active incident. Launch an attack to see what it would cost.</div><div class="kpi"><div><b id="k1">-</b><span>Time to detect</span></div><div><b id="k2">-</b><span>Time to respond</span></div><div><b id="k3">$0</b><span>Loss at risk</span></div></div></section>
+</div></div>
+<div id="md"><div class="pn" id="mc"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),TN={T1566:'Phishing',T1078:'Valid Accounts',T1068:'Priv Escalation',T1003:'Cred Dumping',T1021:'Remote Services',T1567:'Exfil Web Svc',T1486:'Data Encrypted',T1041:'Exfil over C2',T1071:'App Layer C2',T1562:'Impair Defenses',T1059:'Script Exec',T1053:'Sched Task',T1055:'Proc Injection',T1046:'Network Scan',T1570:'Lateral Xfer',T1490:'Inhibit Recovery',T1105:'Ingress Tool',T1547:'Autostart',T1190:'Exploit Public App',T1110:'Brute Force'};
+const CITY=[['New York',40.7,-74],['London',51.5,-.1],['Frankfurt',50.1,8.7],['Mumbai',19.1,72.9],['Singapore',1.3,103.8],['Tokyo',35.7,139.7],['Sydney',-33.9,151.2],['Sao Paulo',-23.5,-46.6],['Lagos',6.5,3.4],['Bucharest',44.4,26.1],['Jakarta',-6.2,106.8],['Dhaka',23.8,90.4]];
+const IND={bank:{n:'Banking',t:'Core Banking DB',c:0,f:'T1567',fl:'SWIFT payment fraud',loss:4.8,x:'reached the core banking database and began pushing fraudulent SWIFT transfers'},health:{n:'Healthcare',t:'Patient Records Server',c:1,f:'T1486',fl:'Ransomware encryption',loss:9.8,x:'reached the patient records server and started encrypting hospital data'},telecom:{n:'Telecom',t:'Subscriber Database',c:3,f:'T1041',fl:'SIM-swap data theft',loss:3.1,x:'reached the subscriber database and is stealing data for SIM-swap fraud'},cloud:{n:'Cloud / SaaS',t:'Production Cluster',c:4,f:'T1071',fl:'C2 beaconing from prod',loss:5.2,x:'reached the production cluster and opened a hidden channel to steal customer data'},energy:{n:'Energy',t:'SCADA Gateway',c:2,f:'T1562',fl:'Safety defenses disabled',loss:7.4,x:'reached the SCADA gateway and switched off defenses that protect the grid'}};
+const BASE=['T1566','T1078','T1068','T1003','T1021'],BN=['Phishing email','Stolen login used','Privilege escalation','Credential dumping','Lateral movement'];
+let gaps=new Set(['T1003','T1021']),ts={},st='idle',stage=0,tmr,det=0,score=62,ind='bank',ioc='',fixed=false;
+const log=(m,c='')=>{const d=document.createElement('div');d.className=c;d.textContent=new Date().toLocaleTimeString([],{hour12:false})+'  '+m;$('#term').prepend(d)};
+const hm=$('#hm');Object.keys(TN).forEach(k=>{const d=document.createElement('div');d.className='tile';d.id=k;d.innerHTML=TN[k]+'<b>'+k+'</b>';hm.append(d)});
+function slots(){const I=IND[ind],nm=[...BN,I.fl],ids=[...BASE,I.f];$('#rl').innerHTML=nm.map((n,i)=>'<div class="slot" id="s'+i+'"><b>'+n+'</b><i>'+ids[i]+' '+TN[ids[i]]+'</i></div>').join('')}
+function paint(){Object.keys(TN).forEach(k=>{$('#'+k).className='tile '+(ts[k]||'')});$('#fix').classList.toggle('hide',!(gaps.size&&Object.values(ts).includes('m')))}
+function setScore(v){const a=score,t0=performance.now();(function f(n){const p=Math.min(1,(n-t0)/900);$('#sc').textContent=Math.round(a+(v-a)*p);if(p<1)requestAnimationFrame(f)})(t0);score=v}
+function chip(c,t){$('#chip').className=c;$('#chip').textContent=t}
+function feed(c,t){const d=document.createElement('div');d.className=c;d.textContent=t;$('#bl').prepend(d)}
+function start(){clearInterval(tmr);ind=$('#pl .on').dataset.i;const I=IND[ind];ts={};stage=0;det=0;st='run';slots();$('#bl').innerHTML='';paint();$('#go').disabled=true;$('#rs').textContent='attacking';$('#bs').textContent='hunting';chip('hot','ATTACK IN PROGRESS');SFX.alarm();banner('BREACH DETECTED','Active attack on '+I.t,0);say('Warning. You have been attacked. Intrusion detected on '+I.t+'.');$('#k1').textContent='-';$('#k2').textContent='-';$('#dp').textContent='0%';$('#db').style.width='0';
+const src=[[44.4,26.1,'Bucharest'],[6.5,3.4,'Lagos'],[-23.5,-46.6,'Sao Paulo'],[-6.2,106.8,'Jakarta']][Math.random()*4|0],tg=CITY[I.c];
+addArc(src[0],src[1],tg[1],tg[2],0xff5a3c,1);flyTo(tg[1],tg[2]);
+const ip=[45,91,185,203][Math.random()*4|0]+'.'+(10+Math.random()*200|0)+'.'+(Math.random()*250|0)+'.'+(2+Math.random()*250|0);
+ioc='IOC  source_ip: '+ip+' ('+src[2]+')\nIOC  domain: secure-login-update[.]xyz\nIOC  target: '+I.t+'\n';
+log('Red Agent launched campaign against '+I.t+' from '+src[2],'w');tmr=setInterval(step,1300);step()}
+function step(){const I=IND[ind],ids=[...BASE,I.f],k=ids[stage];if(!k)return;const i=stage;
+$('#s'+i).className='slot act';ts[k]='a';paint();log('RED  '+k+' '+TN[k]);
+setTimeout(()=>{const ok=!gaps.has(k);ts[k]=ok?(fixed?'f':'d'):'m';if(ok)det++;$('#s'+i).className='slot '+(ok?'det':'miss');
+feed(ok?'':'no',ok?'Detected '+k+' '+TN[k]:'MISSED '+k+' '+TN[k]+' (blind spot)');log(ok?'BLUE alert raised for '+k:'BLUE no alert for '+k,ok?'s':'w');ok?SFX.blip():SFX.miss();
+const p=Math.round(det/(i+1)*100);$('#dp').textContent=p+'%';$('#db').style.width=p+'%';
+if(!gaps.size&&i>=2&&st==='run')contain('Blue Agent auto-response',true);paint()},550);
+$('#k3').textContent='$'+(I.loss*(stage+1)/6).toFixed(1)+'M';$('#imp').innerHTML='An attacker has '+I.x+'. If nobody stops it, expected loss is <em>about $'+I.loss+'M</em>.';
+stage++;if(stage>5){clearInterval(tmr);setTimeout(()=>{if(st==='run')contain('Late detection',false)},1500)}}
+function contain(by,auto){if(st!=='run')return;st='done';clearInterval(tmr);const I=IND[ind],s=auto?2.3:(gaps.size?38.4:4.1),miss=gaps.size;
+$('#k1').textContent=(miss?(stage*6.2).toFixed(1):'1.4')+'s';$('#k2').textContent=s+'s';arcs.forEach(a=>a.m.material.color.set(0x3ddc97));
+chip('cont','CONTAINED IN '+s+'s');SFX.safe();banner(miss?'CONTAINED LATE':'DEFENSIVE MODE ACTIVE','Threat contained in '+s+'s'+(miss?', blind spots remain':''),1);say(miss?'Threat contained late. Blind spots remain.':'Threat contained. Defensive mode active. You are now secure.');$('#rs').textContent='stopped';$('#bs').textContent='contained';$('#go').disabled=false;$('#go').textContent='Re-test';fly=false;
+$('#imp').innerHTML=miss?'Contained late. Attacker stayed unseen for <em>'+miss+' stages</em>. Real breach cost could still reach about $'+(I.loss*.55).toFixed(1)+'M. Fix the blind spots.':'Threat stopped before data left the building. <b style="color:var(--ok)">About $'+I.loss+'M loss prevented.</b>';
+log(by+': threat contained in '+s+'s','s');setScore(94-miss*16);paint()}
+let AC,mute=false;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,ty='sine',v=.15,t0=0,f2){const a=ac();if(!a||mute)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.linearRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(v,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+function say(m,f){if(mute||(demo&&!f)||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(m);u.rate=.95;u.pitch=.8;speechSynthesis.speak(u)}catch(e){}}
+const SFX={alarm(){for(let i=0;i<3;i++)tone(620,.45,'sawtooth',.12,i*.5,980)},blip(){tone(880,.12,'sine',.08);tone(1320,.12,'sine',.06,.1)},miss(){tone(140,.4,'square',.1)},safe(){tone(523,.18,'triangle',.14);tone(659,.18,'triangle',.14,.15);tone(784,.35,'triangle',.14,.3)},fix(){tone(660,.1,'sine',.1);tone(990,.2,'sine',.1,.1)}};
+function banner(t,s,safe){const b=$('#bn'),ic=safe?'<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8 12l3 3 5-6"/>':'<path d="M12 3L2 21h20z"/><path d="M12 10v5M12 18v.5"/>';b.className='';void b.offsetWidth;b.innerHTML='<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-10px;margin-right:14px">'+ic+'</svg>'+t+'<small>'+s+'</small>';b.className='show'+(safe?' safe':'');const v=$('#vg');v.className='';void v.offsetWidth;v.className=safe?'safe':'hot'}
+$('#snd').onclick=()=>{mute=!mute;$('#snd').textContent='Sound: '+(mute?'off':'on');if(mute&&window.speechSynthesis)speechSynthesis.cancel()};
+let dm=[],demo=false;
+function cap(t){const c=$('#cap');c.textContent=t;c.className='show';say(t,1)}
+function stopDemo(){dm.forEach(clearTimeout);dm=[];demo=false;$('#cap').className='';$('#dm').textContent='Play demo';if(window.speechSynthesis)speechSynthesis.cancel();$('#md').classList.remove('on')}
+function playDemo(){if(demo){stopDemo();return}if(st==='run')return;ac();demo=true;$('#dm').textContent='Stop demo';gaps=new Set(['T1003','T1021']);fixed=false;ts={};score=62;$('#sc').textContent=62;$('#bl').innerHTML='';$('#term').innerHTML='';$('#go').textContent='Launch attack';$('#dp').textContent='0%';$('#db').style.width='0';$('#k1').textContent='-';$('#k2').textContent='-';$('#k3').textContent='$0';chip('','SECURE');paint();document.querySelector('#pl [data-i=health]').click();
+const T=(ms,f)=>dm.push(setTimeout(f,ms));
+T(300,()=>cap('Meet SPECTRA. It attacks, detects, fixes and re-tests, all on one screen. Let us attack a hospital.'));
+T(7500,()=>{cap('Launching a simulated ransomware attack on the patient records server.');start()});
+T(12500,()=>cap('Watch the chain on the left. Green means the Blue team detected it. Red means a blind spot.'));
+T(16200,()=>cap('Two attack steps went unseen. That is a real gap in the defense.'));
+T(20500,()=>cap('SPECTRA now writes the missing detection rules automatically.'));
+T(22500,()=>$('#fix').click());
+T(25000,()=>cap('Now we re-test the exact same attack.'));
+T(27000,()=>$('#go').click());
+T(30500,()=>cap('Blue team stopped it in 2.3 seconds. Score rose from 62 to 94, and about 9.8 million dollars in loss was prevented.'));
+T(38000,()=>cap('One click builds the executive report.'));
+T(39500,()=>$('#rep').click());
+T(43500,()=>{$('#md').classList.remove('on');cap('That is SPECTRA. Attack, detect, fix, and prove it.')});
+T(48500,stopDemo)}
+$('#dm').onclick=playDemo;
+$('#go').onclick=start;
+document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{if(st!=='run'){log('No active threat to '+b.dataset.a.toLowerCase(),'s');return}log('Analyst action: '+b.dataset.a,'s');contain(b.dataset.a,true)});
+$('#fix').onclick=()=>{let o='';gaps.forEach(k=>{o+='title: Detect '+TN[k]+' ('+k+')\nid: spectra-'+k.toLowerCase()+'\nlogsource:\n  category: process_creation\ndetection:\n  selection:\n    technique: '+k+'\n  condition: selection\nlevel: high\n---\n';ts[k]='f'});gaps.clear();fixed=true;
+const p=document.createElement('pre');p.textContent=ioc+o;$('#term').prepend(p);log('Sigma rules generated and deployed. Press Re-test to verify.','s');SFX.fix();say('Detection rules deployed.');setScore(94);paint()};
+$('#mEx').onclick=()=>{document.body.classList.add('exec');$('#mEx').classList.add('on');$('#mAn').classList.remove('on')};$('#mAn').onclick=()=>{document.body.classList.remove('exec');$('#mAn').classList.add('on');$('#mEx').classList.remove('on')};
+$('#pl').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#pl button').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(st!=='run'){ind=b.dataset.i;slots();const c=CITY[IND[ind].c];flyTo(c[1],c[2]);log('Industry switched to '+IND[ind].n,'s')}};
+$('#rep').onclick=()=>{const I=IND[ind];$('#mc').innerHTML='<h3>Executive report: '+I.n+'</h3><p>Scenario: '+I.fl+' against '+I.t+' (simulated).</p><table><tr><td>Purple score</td><td><b>'+score+'/100</b></td></tr><tr><td>Detection rate</td><td>'+$('#dp').textContent+'</td></tr><tr><td>Time to detect</td><td>'+$('#k1').textContent+'</td></tr><tr><td>Time to respond</td><td>'+$('#k2').textContent+'</td></tr><tr><td>Loss exposure</td><td>$'+I.loss+'M</td></tr><tr><td>Open blind spots</td><td>'+gaps.size+'</td></tr></table><p>Recommendation: '+(gaps.size?'deploy detections for credential dumping and lateral movement, then re-test.':'keep rules deployed and schedule monthly purple team re-tests.')+'</p><button onclick="try{window.print()}catch(e){}">Print or save as PDF</button> <button onclick="$(\'#md\').classList.remove(\'on\')">Close</button>';$('#md').classList.add('on')};
+/* 3D globe */
+const LAND=['-168,66,-140,70,-95,72,-80,65,-62,58,-55,48,-68,44,-76,35,-81,25,-88,30,-97,26,-105,22,-96,16,-86,12,-78,8,-83,16,-106,28,-117,32,-124,40,-125,49,-140,59,-160,58','-78,8,-62,10,-50,0,-35,-6,-40,-22,-58,-38,-66,-55,-75,-50,-72,-30,-81,-6','-10,36,-9,43,-4,48,5,52,10,58,20,70,40,68,70,73,110,77,160,70,180,66,160,55,140,45,122,30,120,22,108,10,100,3,98,14,90,22,80,8,72,20,60,25,50,28,35,30,28,37,15,38,5,38','35,30,43,13,52,16,58,22,56,26,48,30','-17,21,-6,36,10,37,32,31,43,12,51,12,40,-5,40,-15,33,-26,20,-35,12,-18,9,4,-8,4,-17,14','114,-22,130,-12,142,-11,153,-27,146,-39,130,-32,115,-34','-55,60,-20,70,-20,82,-60,80','130,32,141,36,145,44,140,43','95,5,106,-6,100,-3','109,2,118,7,117,-3,110,-3'].map(s=>{const a=s.split(',').map(Number),p=[];for(let i=0;i<a.length;i+=2)p.push([a[i],a[i+1]]);return p});
+const inside=(x,y,p)=>{let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[1]>y)!=(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c};
+const stg=$('#stage'),RD=new THREE.WebGLRenderer({antialias:true,alpha:true});RD.setPixelRatio(Math.min(devicePixelRatio,2));stg.append(RD.domElement);
+const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(42,1,.1,60),G=new THREE.Group(),Y=new THREE.Vector3(0,1,0),X=new THREE.Vector3(1,0,0);C.position.z=3.4;S.add(G);
+const V3=(la,lo,r=1)=>{const p=(90-la)*Math.PI/180,t=(lo+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t))};
+G.add(new THREE.Mesh(new THREE.SphereGeometry(.994,48,48),new THREE.MeshBasicMaterial({color:0x0a1530})));
+const pts=[];for(let la=-80;la<=84;la+=1.8){const n=Math.round(200*Math.cos(la*Math.PI/180))+1;for(let k=0;k<n;k++){const lo=-180+360*k/n;if(LAND.some(p=>inside(lo,la,p)))pts.push(V3(la,lo))}}
+G.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts),new THREE.PointsMaterial({color:0x8fb4ff,size:.0105})));
+S.add(new THREE.Mesh(new THREE.SphereGeometry(1.16,48,48),new THREE.ShaderMaterial({transparent:true,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false,vertexShader:'varying vec3 n;void main(){n=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 n;void main(){float i=pow(max(.74-dot(n,vec3(0.,0.,1.)),0.),3.);gl_FragColor=vec4(.3,.5,1.,1.)*i;}'})));
+const sp=[];for(let i=0;i<700;i++){sp.push(new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(18+Math.random()*6))}
+S.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(sp),new THREE.PointsMaterial({color:0xaabfff,size:.07,transparent:true,opacity:.6})));
+const cm=CITY.map((c,i)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.014,12,12),new THREE.MeshBasicMaterial({color:0xffc247}));m.position.copy(V3(c[1],c[2],1.005));m.userData.i=i;G.add(m);return m});
+const ring=new THREE.Mesh(new THREE.RingGeometry(.03,.036,40),new THREE.MeshBasicMaterial({color:0xff5a3c,transparent:true,side:THREE.DoubleSide}));ring.visible=false;G.add(ring);
+let arcs=[],fly=false,fq=new THREE.Quaternion(),drag=false,moved=0,lx=0,ly=0;
+function addArc(a1,a2,b1,b2,col,sp){const A=V3(a1,a2),B=V3(b1,b2),m=A.clone().add(B).normalize().multiplyScalar(1+A.distanceTo(B)*.42),cv=new THREE.QuadraticBezierCurve3(A,m,B),
+tube=new THREE.Mesh(new THREE.TubeGeometry(cv,64,.0035,5),new THREE.MeshBasicMaterial({color:col,transparent:true})),head=new THREE.Mesh(new THREE.SphereGeometry(.016,10,10),new THREE.MeshBasicMaterial({color:0xffffff}));
+tube.geometry.setDrawRange(0,0);G.add(tube,head);arcs.push({m:tube,h:head,cv,t:0,sp:sp?1:0,s:.011});if(arcs.length>5){const o=arcs.shift();G.remove(o.m,o.h)}}
+function flyTo(la,lo){fq.setFromUnitVectors(V3(la,lo).normalize(),new THREE.Vector3(0,0,1));fly=true;const c=V3(la,lo,1.012);ring.position.copy(c);ring.lookAt(c.clone().multiplyScalar(2));ring.visible=true}
+function size(){const w=stg.clientWidth,h=stg.clientHeight;RD.setSize(w,h);C.aspect=w/h;C.updateProjectionMatrix()}new ResizeObserver(size).observe(stg);size();
+const cvs=RD.domElement,rc=new THREE.Raycaster(),pp=new THREE.Vector2();
+cvs.addEventListener('pointerdown',e=>{drag=true;moved=0;lx=e.clientX;ly=e.clientY;fly=false});addEventListener('pointerup',e=>{if(drag&&moved<5&&e.target===cvs)pick(e);drag=false});
+addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);G.rotateOnWorldAxis(Y,dx*.005);G.rotateOnWorldAxis(X,dy*.005)});
+function pick(e){const b=cvs.getBoundingClientRect();pp.set((e.clientX-b.left)/b.width*2-1,-((e.clientY-b.top)/b.height)*2+1);rc.setFromCamera(pp,C);const h=rc.intersectObjects(cm.map(m=>{m.scale.setScalar(2.2);return m}))[0];cm.forEach(m=>m.scale.setScalar(1));const p=$('#pop');if(!h){p.style.display='none';return}
+const i=h.object.userData.i,hot=st==='run'&&IND[ind].c===i;p.innerHTML='<b>'+CITY[i][0]+'</b><br>Status: '+(hot?'<span style="color:var(--at)">under attack</span>':'<span style="color:var(--ok)">normal</span>')+'<br>Blocked events today: '+(120+i*37)+'<br>Top technique: '+(hot?TN[IND[ind].f]:'Brute Force');p.style.display='block'}
+function loop(){requestAnimationFrame(loop);const t=performance.now()/1000;if(fly)G.quaternion.slerp(fq,.045);else if(!drag)G.rotateOnWorldAxis(Y,.0016);
+C.position.z+=((st==='run'?2.7:3.4)-C.position.z)*.03;
+arcs.forEach(a=>{a.t=Math.min(a.t+a.s,1.6);const p=Math.min(a.t,1);a.m.geometry.setDrawRange(0,Math.floor(p*64)*30);a.h.position.copy(a.cv.getPoint(p));a.h.visible=a.t<1;if(a.t>1)a.m.material.opacity=Math.max(0,1-(a.t-1)*1.6)*(a.sp?1:.7)});
+if(ring.visible){const k=(t*1.4)%1;ring.scale.setScalar(1+k*3);ring.material.opacity=1-k;ring.material.color.set(st==='run'?0xff5a3c:0x8fb4ff)}
+RD.render(S,C)}loop();
+setInterval(()=>{if(st!=='run'&&!document.hidden){const a=CITY[Math.random()*12|0],b=CITY[Math.random()*12|0];if(a!==b)addArc(a[1],a[2],b[1],b[2],0x8fb4ff,0)}},2200);
+slots();log('SPECTRA online. Sensors healthy.','s');paint();flyTo(CITY[0][1],CITY[0][2]);fly=false;
+</script></body></html>
