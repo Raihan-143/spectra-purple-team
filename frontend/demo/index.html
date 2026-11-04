@@ -44,10 +44,11 @@ body.exec .an{display:none!important}body:not(.exec) .ex{display:none!important}
 #bn{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;opacity:0;text-align:center;font:700 clamp(28px,6vw,58px)/1 var(--hd);letter-spacing:.16em;padding:20px 38px;border-radius:12px;background:rgba(8,10,22,.86);border:2px solid var(--at);color:var(--at);text-shadow:0 0 24px currentColor;white-space:nowrap}#bn small{display:block;font:500 clamp(11px,1.6vw,16px) 'IBM Plex Mono',monospace;letter-spacing:.06em;margin-top:10px;color:var(--tx);text-shadow:none}#bn.safe{border-color:var(--ok);color:var(--ok)}#bn.show{animation:bs 2.8s forwards}
 @keyframes bs{0%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}10%{opacity:1;transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
 #cap{position:fixed;left:50%;bottom:236px;transform:translateX(-50%);z-index:6;max-width:min(680px,92vw);padding:12px 20px;border-radius:10px;background:rgba(8,10,22,.92);border:1px solid var(--am);color:var(--tx);font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .3s}#cap.show{opacity:1}#dm{border-color:var(--am);color:var(--am)}
+#boot{position:fixed;inset:0;z-index:50;background:#04060d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .9s}#boot.out{opacity:0;pointer-events:none}#boot .lg{font:700 clamp(34px,9vw,68px)/1 var(--hd);letter-spacing:.3em;margin-right:-.3em;background:linear-gradient(90deg,var(--ice),var(--am));-webkit-background-clip:text;background-clip:text;color:transparent}#btxt{color:var(--ice);font-size:12px;min-height:118px;margin:0;text-align:left}#bbar{width:min(320px,70vw);height:3px;background:var(--ln)}#bbar i{display:block;height:100%;width:0;background:var(--am);transition:width 2.8s linear}#bskip{color:var(--mu);font-size:11px;border:0;background:none}
 @media(max-width:1000px){#cap{bottom:14px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
-<div id="stage"></div><div id="vg"></div><div id="bn"></div><div id="cap"></div>
+<div id="boot"><div class="lg">SPECTRA</div><pre id="btxt"></pre><div id="bbar"><i></i></div><button id="bskip">Skip intro</button></div><div id="stage"></div><div id="vg"></div><div id="bn"></div><div id="cap"></div>
 <div class="hud">
 <header><div class="logo">SPECTRA<small>Purple Team command center (simulated)</small></div>
 <div class="pills" id="pl"><button data-i="bank" class="on">Banking</button><button data-i="health">Healthcare</button><button data-i="telecom">Telecom</button><button data-i="cloud">Cloud</button><button data-i="energy">Energy</button></div>
@@ -76,7 +77,7 @@ function paint(){Object.keys(TN).forEach(k=>{$('#'+k).className='tile '+(ts[k]||
 function setScore(v){const a=score,t0=performance.now();(function f(n){const p=Math.min(1,(n-t0)/900);$('#sc').textContent=Math.round(a+(v-a)*p);if(p<1)requestAnimationFrame(f)})(t0);score=v}
 function chip(c,t){$('#chip').className=c;$('#chip').textContent=t}
 function feed(c,t){const d=document.createElement('div');d.className=c;d.textContent=t;$('#bl').prepend(d)}
-function start(){clearInterval(tmr);ind=$('#pl .on').dataset.i;const I=IND[ind];ts={};stage=0;det=0;st='run';slots();$('#bl').innerHTML='';paint();$('#go').disabled=true;$('#rs').textContent='attacking';$('#bs').textContent='hunting';chip('hot','ATTACK IN PROGRESS');SFX.alarm();banner('BREACH DETECTED','Active attack on '+I.t,0);say('Warning. You have been attacked. Intrusion detected on '+I.t+'.');$('#k1').textContent='-';$('#k2').textContent='-';$('#dp').textContent='0%';$('#db').style.width='0';
+function start(){clearInterval(tmr);ind=$('#pl .on').dataset.i;const I=IND[ind];ts={};stage=0;det=0;st='run';slots();$('#bl').innerHTML='';paint();$('#go').disabled=true;$('#rs').textContent='attacking';$('#bs').textContent='hunting';chip('hot','ATTACK IN PROGRESS');SFX.alarm();banner('BREACH DETECTED','Active attack on '+I.t,0);say('Warning. You have been attacked. Intrusion detected on '+I.t+'.');$('#k1').textContent='-';$('#k2').textContent='-';$('#dp').textContent='0%';['#k1','#k2','#k3','#dp'].forEach(x=>$(x).dataset.v=0);$('#db').style.width='0';
 const src=[[44.4,26.1,'Bucharest'],[6.5,3.4,'Lagos'],[-23.5,-46.6,'Sao Paulo'],[-6.2,106.8,'Jakarta']][Math.random()*4|0],tg=CITY[I.c];
 addArc(src[0],src[1],tg[1],tg[2],0xff5a3c,1);flyTo(tg[1],tg[2]);
 const ip=[45,91,185,203][Math.random()*4|0]+'.'+(10+Math.random()*200|0)+'.'+(Math.random()*250|0)+'.'+(2+Math.random()*250|0);
@@ -86,12 +87,12 @@ function step(){const I=IND[ind],ids=[...BASE,I.f],k=ids[stage];if(!k)return;con
 $('#s'+i).className='slot act';ts[k]='a';paint();log('RED  '+k+' '+TN[k]);
 setTimeout(()=>{const ok=!gaps.has(k);ts[k]=ok?(fixed?'f':'d'):'m';if(ok)det++;$('#s'+i).className='slot '+(ok?'det':'miss');
 feed(ok?'':'no',ok?'Detected '+k+' '+TN[k]:'MISSED '+k+' '+TN[k]+' (blind spot)');log(ok?'BLUE alert raised for '+k:'BLUE no alert for '+k,ok?'s':'w');ok?SFX.blip():SFX.miss();
-const p=Math.round(det/(i+1)*100);$('#dp').textContent=p+'%';$('#db').style.width=p+'%';
+const p=Math.round(det/(i+1)*100);cnt('#dp',p,v=>Math.round(v)+'%',500);$('#db').style.width=p+'%';
 if(!gaps.size&&i>=2&&st==='run')contain('Blue Agent auto-response',true);paint()},550);
-$('#k3').textContent='$'+(I.loss*(stage+1)/6).toFixed(1)+'M';$('#imp').innerHTML='An attacker has '+I.x+'. If nobody stops it, expected loss is <em>about $'+I.loss+'M</em>.';
+cnt('#k3',I.loss*(stage+1)/6,v=>'$'+v.toFixed(1)+'M',900);$('#imp').innerHTML='An attacker has '+I.x+'. If nobody stops it, expected loss is <em>about $'+I.loss+'M</em>.';
 stage++;if(stage>5){clearInterval(tmr);setTimeout(()=>{if(st==='run')contain('Late detection',false)},1500)}}
 function contain(by,auto){if(st!=='run')return;st='done';clearInterval(tmr);const I=IND[ind],s=auto?2.3:(gaps.size?38.4:4.1),miss=gaps.size;
-$('#k1').textContent=(miss?(stage*6.2).toFixed(1):'1.4')+'s';$('#k2').textContent=s+'s';arcs.forEach(a=>a.m.material.color.set(0x3ddc97));
+cnt('#k1',miss?stage*6.2:1.4,v=>v.toFixed(1)+'s',900);cnt('#k2',s,v=>v.toFixed(1)+'s',900);arcs.forEach(a=>a.m.material.color.set(0x3ddc97));
 chip('cont','CONTAINED IN '+s+'s');SFX.safe();banner(miss?'CONTAINED LATE':'DEFENSIVE MODE ACTIVE','Threat contained in '+s+'s'+(miss?', blind spots remain':''),1);say(miss?'Threat contained late. Blind spots remain.':'Threat contained. Defensive mode active. You are now secure.');$('#rs').textContent='stopped';$('#bs').textContent='contained';$('#go').disabled=false;$('#go').textContent='Re-test';fly=false;
 $('#imp').innerHTML=miss?'Contained late. Attacker stayed unseen for <em>'+miss+' stages</em>. Real breach cost could still reach about $'+(I.loss*.55).toFixed(1)+'M. Fix the blind spots.':'Threat stopped before data left the building. <b style="color:var(--ok)">About $'+I.loss+'M loss prevented.</b>';
 log(by+': threat contained in '+s+'s','s');setScore(94-miss*16);paint()}
@@ -102,6 +103,7 @@ function say(m,f){if(mute||(demo&&!f)||!window.speechSynthesis)return;try{speech
 const SFX={alarm(){for(let i=0;i<3;i++)tone(620,.45,'sawtooth',.12,i*.5,980)},blip(){tone(880,.12,'sine',.08);tone(1320,.12,'sine',.06,.1)},miss(){tone(140,.4,'square',.1)},safe(){tone(523,.18,'triangle',.14);tone(659,.18,'triangle',.14,.15);tone(784,.35,'triangle',.14,.3)},fix(){tone(660,.1,'sine',.1);tone(990,.2,'sine',.1,.1)}};
 function banner(t,s,safe){const b=$('#bn'),ic=safe?'<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8 12l3 3 5-6"/>':'<path d="M12 3L2 21h20z"/><path d="M12 10v5M12 18v.5"/>';b.className='';void b.offsetWidth;b.innerHTML='<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-10px;margin-right:14px">'+ic+'</svg>'+t+'<small>'+s+'</small>';b.className='show'+(safe?' safe':'');const v=$('#vg');v.className='';void v.offsetWidth;v.className=safe?'safe':'hot'}
 $('#snd').onclick=()=>{mute=!mute;$('#snd').textContent='Sound: '+(mute?'off':'on');if(mute&&window.speechSynthesis)speechSynthesis.cancel()};
+function cnt(sel,to,fmt,ms=800){const el=$(sel),a=+el.dataset.v||0,t0=performance.now();el.dataset.v=to;(function f(n){const p=Math.min(1,(n-t0)/ms),e=1-Math.pow(1-p,3);el.textContent=fmt(a+(to-a)*e);if(p<1)requestAnimationFrame(f)})(t0)}
 let dm=[],demo=false;
 function cap(t){const c=$('#cap');c.textContent=t;c.className='show';say(t,1)}
 function stopDemo(){dm.forEach(clearTimeout);dm=[];demo=false;$('#cap').className='';$('#dm').textContent='Play demo';if(window.speechSynthesis)speechSynthesis.cancel();$('#md').classList.remove('on')}
@@ -132,7 +134,7 @@ $('#rep').onclick=()=>{const I=IND[ind];$('#mc').innerHTML='<h3>Executive report
 const LAND=['-168,66,-140,70,-95,72,-80,65,-62,58,-55,48,-68,44,-76,35,-81,25,-88,30,-97,26,-105,22,-96,16,-86,12,-78,8,-83,16,-106,28,-117,32,-124,40,-125,49,-140,59,-160,58','-78,8,-62,10,-50,0,-35,-6,-40,-22,-58,-38,-66,-55,-75,-50,-72,-30,-81,-6','-10,36,-9,43,-4,48,5,52,10,58,20,70,40,68,70,73,110,77,160,70,180,66,160,55,140,45,122,30,120,22,108,10,100,3,98,14,90,22,80,8,72,20,60,25,50,28,35,30,28,37,15,38,5,38','35,30,43,13,52,16,58,22,56,26,48,30','-17,21,-6,36,10,37,32,31,43,12,51,12,40,-5,40,-15,33,-26,20,-35,12,-18,9,4,-8,4,-17,14','114,-22,130,-12,142,-11,153,-27,146,-39,130,-32,115,-34','-55,60,-20,70,-20,82,-60,80','130,32,141,36,145,44,140,43','95,5,106,-6,100,-3','109,2,118,7,117,-3,110,-3'].map(s=>{const a=s.split(',').map(Number),p=[];for(let i=0;i<a.length;i+=2)p.push([a[i],a[i+1]]);return p});
 const inside=(x,y,p)=>{let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[1]>y)!=(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c};
 const stg=$('#stage'),RD=new THREE.WebGLRenderer({antialias:true,alpha:true});RD.setPixelRatio(Math.min(devicePixelRatio,2));stg.append(RD.domElement);
-const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(42,1,.1,60),G=new THREE.Group(),Y=new THREE.Vector3(0,1,0),X=new THREE.Vector3(1,0,0);C.position.z=3.4;S.add(G);
+const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(42,1,.1,60),G=new THREE.Group(),Y=new THREE.Vector3(0,1,0),X=new THREE.Vector3(1,0,0);C.position.z=9;S.add(G);
 const V3=(la,lo,r=1)=>{const p=(90-la)*Math.PI/180,t=(lo+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t))};
 G.add(new THREE.Mesh(new THREE.SphereGeometry(.994,48,48),new THREE.MeshBasicMaterial({color:0x0a1530})));
 const pts=[];for(let la=-80;la<=84;la+=1.8){const n=Math.round(200*Math.cos(la*Math.PI/180))+1;for(let k=0;k<n;k++){const lo=-180+360*k/n;if(LAND.some(p=>inside(lo,la,p)))pts.push(V3(la,lo))}}
@@ -142,7 +144,7 @@ const sp=[];for(let i=0;i<700;i++){sp.push(new THREE.Vector3(Math.random()-.5,Ma
 S.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(sp),new THREE.PointsMaterial({color:0xaabfff,size:.07,transparent:true,opacity:.6})));
 const cm=CITY.map((c,i)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.014,12,12),new THREE.MeshBasicMaterial({color:0xffc247}));m.position.copy(V3(c[1],c[2],1.005));m.userData.i=i;G.add(m);return m});
 const ring=new THREE.Mesh(new THREE.RingGeometry(.03,.036,40),new THREE.MeshBasicMaterial({color:0xff5a3c,transparent:true,side:THREE.DoubleSide}));ring.visible=false;G.add(ring);
-let arcs=[],fly=false,fq=new THREE.Quaternion(),drag=false,moved=0,lx=0,ly=0;
+let hold=true;let arcs=[],fly=false,fq=new THREE.Quaternion(),drag=false,moved=0,lx=0,ly=0;
 function addArc(a1,a2,b1,b2,col,sp){const A=V3(a1,a2),B=V3(b1,b2),m=A.clone().add(B).normalize().multiplyScalar(1+A.distanceTo(B)*.42),cv=new THREE.QuadraticBezierCurve3(A,m,B),
 tube=new THREE.Mesh(new THREE.TubeGeometry(cv,64,.0035,5),new THREE.MeshBasicMaterial({color:col,transparent:true})),head=new THREE.Mesh(new THREE.SphereGeometry(.016,10,10),new THREE.MeshBasicMaterial({color:0xffffff}));
 tube.geometry.setDrawRange(0,0);G.add(tube,head);arcs.push({m:tube,h:head,cv,t:0,sp:sp?1:0,s:.011});if(arcs.length>5){const o=arcs.shift();G.remove(o.m,o.h)}}
@@ -154,10 +156,13 @@ addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-lx,dy=e.cl
 function pick(e){const b=cvs.getBoundingClientRect();pp.set((e.clientX-b.left)/b.width*2-1,-((e.clientY-b.top)/b.height)*2+1);rc.setFromCamera(pp,C);const h=rc.intersectObjects(cm.map(m=>{m.scale.setScalar(2.2);return m}))[0];cm.forEach(m=>m.scale.setScalar(1));const p=$('#pop');if(!h){p.style.display='none';return}
 const i=h.object.userData.i,hot=st==='run'&&IND[ind].c===i;p.innerHTML='<b>'+CITY[i][0]+'</b><br>Status: '+(hot?'<span style="color:var(--at)">under attack</span>':'<span style="color:var(--ok)">normal</span>')+'<br>Blocked events today: '+(120+i*37)+'<br>Top technique: '+(hot?TN[IND[ind].f]:'Brute Force');p.style.display='block'}
 function loop(){requestAnimationFrame(loop);const t=performance.now()/1000;if(fly)G.quaternion.slerp(fq,.045);else if(!drag)G.rotateOnWorldAxis(Y,.0016);
-C.position.z+=((st==='run'?2.7:3.4)-C.position.z)*.03;
+if(!hold)C.position.z+=((st==='run'?2.7:3.4)-C.position.z)*.03;
 arcs.forEach(a=>{a.t=Math.min(a.t+a.s,1.6);const p=Math.min(a.t,1);a.m.geometry.setDrawRange(0,Math.floor(p*64)*30);a.h.position.copy(a.cv.getPoint(p));a.h.visible=a.t<1;if(a.t>1)a.m.material.opacity=Math.max(0,1-(a.t-1)*1.6)*(a.sp?1:.7)});
 if(ring.visible){const k=(t*1.4)%1;ring.scale.setScalar(1+k*3);ring.material.opacity=1-k;ring.material.color.set(st==='run'?0xff5a3c:0x8fb4ff)}
 RD.render(S,C)}loop();
 setInterval(()=>{if(st!=='run'&&!document.hidden){const a=CITY[Math.random()*12|0],b=CITY[Math.random()*12|0];if(a!==b)addArc(a[1],a[2],b[1],b[2],0x8fb4ff,0)}},2200);
 slots();log('SPECTRA online. Sensors healthy.','s');paint();flyTo(CITY[0][1],CITY[0][2]);fly=false;
+const BL=['SPECTRA kernel v2.0 online','Loading MITRE ATT&CK matrix: 20 techniques','Connecting sensors: 12 nodes healthy','Arming Red Agent: standby','Arming Blue Agent: standby','All systems nominal'];
+function endBoot(){const b=$('#boot');if(!b||b.classList.contains('out'))return;b.classList.add('out');hold=false;score=0;$('#sc').textContent=0;setScore(62);setTimeout(()=>{const x=$('#boot');x&&x.remove()},1000)}
+if(matchMedia('(prefers-reduced-motion:reduce)').matches){$('#boot').remove();hold=false}else{setTimeout(()=>{$('#bbar i').style.width='100%'},60);BL.forEach((l,i)=>setTimeout(()=>{$('#btxt').textContent+=(i?'\n':'')+'> '+l},300+i*430));setTimeout(endBoot,3200);$('#bskip').onclick=endBoot}
 </script></body></html>
