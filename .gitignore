@@ -1,0 +1,13 @@
+.env
+*.key
+*.pem
+*.log
+__pycache__/
+node_modules/
+venv/
+.venv/
+*.pcap
+*.ova
+*.vdi
+*.vmdk
+lab/secrets/
